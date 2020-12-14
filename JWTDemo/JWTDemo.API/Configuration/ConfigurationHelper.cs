@@ -63,7 +63,8 @@ namespace JWTDemo.API.Configuration
             var provider = services.BuildServiceProvider();
             var apiVersionDescriptionProvider = provider.GetRequiredService<IApiVersionDescriptionProvider>();
 
-            services.AddSwaggerGen(options => {
+            services.AddSwaggerGen(options =>
+            {
                 foreach (var item in apiVersionDescriptionProvider.ApiVersionDescriptions)
                     options.SwaggerDoc(item.GroupName, new OpenApiInfo { Title = "Authentication API", Version = item.ApiVersion.ToString() });
 
@@ -73,6 +74,28 @@ namespace JWTDemo.API.Configuration
                         AppContext.BaseDirectory,
                         $"{Assembly.GetExecutingAssembly().GetName().Name}.xml")
                     );
+
+                // -> Bearer Auth setup
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header. Example: \"Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                { 
+                    {
+                        new OpenApiSecurityScheme{
+                            Reference = new OpenApiReference{
+                                Id = "Bearer", 
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },new List<string>()
+                    }
+                });
             });
 
             return services;
@@ -90,10 +113,12 @@ namespace JWTDemo.API.Configuration
 
         public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, AppSettings settings)
         {
-            services.AddAuthentication(options => {
+            services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(x => {
+            }).AddJwtBearer(x =>
+            {
                 x.RequireHttpsMetadata = false;
                 x.SaveToken = true;
                 x.TokenValidationParameters = new TokenValidationParameters
@@ -162,7 +187,7 @@ namespace JWTDemo.API.Configuration
             return app;
         }
 
-        
+
 
 
 
