@@ -30,11 +30,13 @@ namespace JWTDemo.API.Services
                     new Claim(ClaimTypes.Name, auth.AuthResultInfo.Name),
                     new Claim(ClaimTypes.Email, auth.AuthResultInfo.Email)
                 }),
-                Expires = DateTime.UtcNow.AddSeconds(settings.JWT.TimeoutInSeconds),
+                Expires = DateTime.UtcNow.AddSeconds(settings.JWT.TokenTimeoutInSeconds),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        public string GenerateRefreshToken() => Guid.NewGuid().ToString();
     }
 }

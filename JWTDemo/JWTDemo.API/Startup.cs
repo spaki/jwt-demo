@@ -1,5 +1,6 @@
 using JWTDemo.API.Configuration;
 using JWTDemo.API.Services;
+using JWTDemo.Cache.Repositories.Common;
 using JWTDemo.Domain.Services.Common;
 using JWTDemo.Infra.Settings;
 using JWTDemo.RepositoryDb.Repositories.Common;
@@ -21,10 +22,12 @@ namespace JWTDemo.API
             .AddSingleton(AppSettings)
             .AddSingleton<TokenService>()
             .AddMemoryDb()
+            .AddDistributedMemoryCache()
             .AddCustomApiVersioning()
             .AddCustomSwaggerDocGenForApiVersioning()
             .AddScopedByBaseType<ServiceBase>()
             .AddScopedByBaseType<RepositoryDbBase>()
+            .AddScopedByBaseType<RepositoryCacheBase>()
             .AddCustomControllers()
             .AddCustomAuthentication(AppSettings)
             ;

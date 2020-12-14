@@ -2,11 +2,10 @@
 {
     public class AuthResultInfo
     {
-        public AuthResultInfo(string email, string name, string refreshToken)
+        public AuthResultInfo(string email, string name)
         {
             Email = email;
             Name = name;
-            RefreshToken = refreshToken;
         }
 
         public string Email { get; set; }

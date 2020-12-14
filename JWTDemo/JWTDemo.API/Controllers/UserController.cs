@@ -2,8 +2,13 @@
 using JWTDemo.API.Services;
 using JWTDemo.Domain.Dtos;
 using JWTDemo.Domain.Dtos.Common;
+using JWTDemo.Domain.Interfaces.Repositories;
 using JWTDemo.Domain.Interfaces.Services;
+using JWTDemo.Infra.Settings;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace JWTDemo.API.Controllers
@@ -13,31 +18,68 @@ namespace JWTDemo.API.Controllers
     {
         private readonly IUserService userService;
         private readonly TokenService tokenService;
+        private readonly IRefreshTokenRepositoryCache refreshTokenRepositoryCache;
+        private readonly AppSettings settings;
 
         public UserController(
             IUserService userService,
-            TokenService tokenService
+            TokenService tokenService,
+            IRefreshTokenRepositoryCache refreshTokenRepositoryCache,
+            AppSettings settings
         )
         {
             this.userService = userService;
             this.tokenService = tokenService;
+            this.refreshTokenRepositoryCache = refreshTokenRepositoryCache;
+            this.settings = settings;
         }
 
-        [HttpGet]
-        public async Task<PagedResult<UserInfo>> GetAsync(string value, int page = 1) => await userService.SearchAsync(value, page).ConfigureAwait(false);
+        [HttpGet("simple")]
+        public async Task<PagedResult<UserInfoSimple>> GetSimpleAsync(string value, int page = 1) => await userService.SearchSimpleAsync(value, page).ConfigureAwait(false);
+
+        [Authorize]
+        [HttpGet("complete")]
+        public async Task<PagedResult<UserInfoComplete>> GetCompleteAsync(string value, int page = 1) => await userService.SearchCompleteAsync(value, page).ConfigureAwait(false);
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<UserInfoComplete> GetMeAsync()
+        {
+            var email = GetClaim(ClaimTypes.Email);
+            var result = await userService.GetUserInfoByEmailAsync(email).ConfigureAwait(false);
+            return result;
+        }
 
         [HttpPost]
         public async Task<OperationResult> CreateAsync(UserCreateRequest request) => await userService.CreateAsync(request).ConfigureAwait(false);
 
         [HttpPost("token")]
-        public async Task<AuthResult> LoginAsync(EmailLoginRequest request)
+        public async Task<ActionResult<AuthResult>> LoginAsync(EmailLoginRequest request)
         {
             var authResult = await userService.AuthenticateAsync(request).ConfigureAwait(false);
+            var result = Authenticate(authResult);
+            return result;
+        }
 
-            if(!authResult.Success)
-                return authResult;
+        [HttpPost("refreshtoken")]
+        public async Task<ActionResult<AuthResult>> LoginAsync(RefreshTokenLoginRequest request)
+        {
+            var authResult = await userService.AuthenticateAsync(request).ConfigureAwait(false);
+            var result = Authenticate(authResult);
+            return result;
+        }
 
-            authResult.SetJwtToken(tokenService.GenerateToken(authResult));
+        private ActionResult<AuthResult> Authenticate(AuthResult authResult)
+        {
+            if (!authResult.Success)
+                return StatusCode(StatusCodes.Status401Unauthorized, authResult);
+
+            var token = tokenService.GenerateToken(authResult);
+            var refreshToken = tokenService.GenerateRefreshToken();
+
+            refreshTokenRepositoryCache.SaveRefreshToken(settings.JWT.RefreshTokenTimeoutInSeconds, new RefreshTokenLoginRequest(authResult.AuthResultInfo.Email, refreshToken));
+            authResult.SetTokens(token, refreshToken);
+
             return authResult;
         }
     }

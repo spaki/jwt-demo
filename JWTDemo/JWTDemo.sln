@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWTDemo.Domain", "JWTDemo.Domain\JWTDemo.Domain.csproj", "{3551EEA8-54E9-476C-A9BF-9CCACF0C5174}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JWTDemo.Domain", "JWTDemo.Domain\JWTDemo.Domain.csproj", "{3551EEA8-54E9-476C-A9BF-9CCACF0C5174}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWTDemo.Infra", "JWTDemo.Infra\JWTDemo.Infra.csproj", "{1777DECA-2926-4DA4-A0C0-0B8CFDBB9090}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JWTDemo.Infra", "JWTDemo.Infra\JWTDemo.Infra.csproj", "{1777DECA-2926-4DA4-A0C0-0B8CFDBB9090}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWTDemo.RepositoryDb", "JWTDemo.RepositoryDb\JWTDemo.RepositoryDb.csproj", "{BEEBC82A-1D11-4DE5-A8E5-C5D890AC3C2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JWTDemo.RepositoryDb", "JWTDemo.RepositoryDb\JWTDemo.RepositoryDb.csproj", "{BEEBC82A-1D11-4DE5-A8E5-C5D890AC3C2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWTDemo.API", "JWTDemo.API\JWTDemo.API.csproj", "{10A9633A-F420-40CA-9478-D116E8657643}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JWTDemo.API", "JWTDemo.API\JWTDemo.API.csproj", "{10A9633A-F420-40CA-9478-D116E8657643}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWTDemo.Cache", "JWTDemo.Cache\JWTDemo.Cache.csproj", "{AFA10621-E2C6-4424-BC66-DBB30C42A27B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{10A9633A-F420-40CA-9478-D116E8657643}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10A9633A-F420-40CA-9478-D116E8657643}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10A9633A-F420-40CA-9478-D116E8657643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFA10621-E2C6-4424-BC66-DBB30C42A27B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFA10621-E2C6-4424-BC66-DBB30C42A27B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFA10621-E2C6-4424-BC66-DBB30C42A27B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFA10621-E2C6-4424-BC66-DBB30C42A27B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

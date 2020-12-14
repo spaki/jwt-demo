@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JWTDemo.Cache\JWTDemo.Cache.csproj" />
     <ProjectReference Include="..\JWTDemo.RepositoryDb\JWTDemo.RepositoryDb.csproj" />
   </ItemGroup>
 

@@ -13,41 +13,49 @@ namespace JWTDemo.Domain.Services
     public class UserService : ServiceBase, IUserService
     {
         private readonly IUserRepositoryDb userRepositoryDb;
+        private readonly IRefreshTokenRepositoryCache refreshTokenRepositoryCache;
 
         public UserService(
-            IUserRepositoryDb userRepositoryDb
+            IUserRepositoryDb userRepositoryDb,
+            IRefreshTokenRepositoryCache refreshTokenRepositoryCache
         )
         {
             this.userRepositoryDb = userRepositoryDb;
+            this.refreshTokenRepositoryCache = refreshTokenRepositoryCache;
         }
 
         public async Task<AuthResult> AuthenticateAsync(EmailLoginRequest request)
         {
             var encryptedPassword = request.Password.ToMD5();
-            var user = await userRepositoryDb.FirstOrDefaultAsync(e => e.Email == request.Email && e.Password == encryptedPassword);
+            var user = await GetByEmailAsync(request.Email);
 
-            if (user == null)
+            if (user == null || user.Password != encryptedPassword)
                 return new AuthResult("Invalid user or password");
 
-            var refreshToken = Guid.NewGuid().ToString();
-            return new AuthResult(user, refreshToken);
+            return new AuthResult(user);
         }
 
-        public async Task<PagedResult<UserInfo>> SearchAsync(string value = null, int page = 1)
+        public async Task<AuthResult> AuthenticateAsync(RefreshTokenLoginRequest request)
         {
-            var result = userRepositoryDb
-                .Page(
-                    e =>
-                        (
-                            value == null
-                            || e.Name.Contains(value)
-                            || e.Email.Contains(value)
-                        ),
-                    page
-                ).To(e => new UserInfo(e));
+            var invalidAuth = new AuthResult("Invalid refresh token");
+            var refreshTokenInfo = refreshTokenRepositoryCache.GetRefreshToken(request?.RefreshToken);
 
-            return result;
+            if (refreshTokenInfo == null || refreshTokenInfo.Email != refreshTokenInfo.Email)
+                return invalidAuth;
+
+            var user = await GetByEmailAsync(request.Email);
+
+            if (user == null)
+                return invalidAuth;
+
+            return new AuthResult(user);
         }
+
+        public async Task<PagedResult<UserInfoComplete>> SearchCompleteAsync(string value = null, int page = 1) => (await SearchAsync(value, page)).To(e => new UserInfoComplete(e));
+
+        public async Task<PagedResult<UserInfoSimple>> SearchSimpleAsync(string value = null, int page = 1) => (await SearchAsync(value, page)).To(e => new UserInfoSimple(e));
+
+        public async Task<UserInfoComplete> GetUserInfoByEmailAsync(string email) => new UserInfoComplete(await GetByEmailAsync(email));
 
         public async Task<OperationResult> CreateAsync(UserCreateRequest request)
         {
@@ -71,5 +79,23 @@ namespace JWTDemo.Domain.Services
 
             return new OperationResult();
         }
+
+        private async Task<PagedResult<User>> SearchAsync(string value = null, int page = 1)
+        {
+            var result = userRepositoryDb
+                .Page(
+                    e =>
+                        (
+                            value == null
+                            || e.Name.Contains(value)
+                            || e.Email.Contains(value)
+                        ),
+                    page
+                );
+
+            return result;
+        }
+
+        private async Task<User> GetByEmailAsync(string email) => await userRepositoryDb.FirstOrDefaultAsync(e => e.Email == email);
     }
 }

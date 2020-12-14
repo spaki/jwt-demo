@@ -9,16 +9,20 @@ namespace JWTDemo.Domain.Dtos
             Message = message;
         }
 
-        public AuthResult(User entity, string refreshToken)
+        public AuthResult(User entity)
         {
             Success = true;
-            AuthResultInfo = new AuthResultInfo(entity.Email, entity.Name, refreshToken);
+            AuthResultInfo = new AuthResultInfo(entity.Email, entity.Name);
         }
 
         public AuthResultInfo AuthResultInfo { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
 
-        public void SetJwtToken(string token) => AuthResultInfo.Token = token;
+        public void SetTokens(string token, string refreshToken)
+        {
+            AuthResultInfo.Token = token;
+            AuthResultInfo.RefreshToken = refreshToken;
+        }
     }
 }

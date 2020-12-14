@@ -3,9 +3,9 @@ using System;
 
 namespace JWTDemo.Domain.Dtos
 {
-    public class UserInfo
+    public class UserInfoComplete
     {
-        public UserInfo(User entity)
+        public UserInfoComplete(User entity)
         {
             Name = entity.Name;
             Email = entity.Email;
