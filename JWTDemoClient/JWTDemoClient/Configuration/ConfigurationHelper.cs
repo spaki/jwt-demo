@@ -1,11 +1,8 @@
-﻿using JWTDemo.Infra.Settings;
-using JWTDemo.RepositoryDb.Context;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -13,32 +10,16 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json.Serialization;
 
-namespace JWTDemo.API.Configuration
+namespace JWTDemoClient.Configuration
 {
     public static class ConfigurationHelper
     {
-        public static IServiceCollection AddScopedByBaseType<TBase>(this IServiceCollection services)
-        {
-            ListTypesOf<TBase>().ForEach(type => services.AddScoped(type.GetInterface($"I{type.Name}"), type));
-
-            return services;
-        }
-
-
-
-        public static IServiceCollection AddMemoryDb(this IServiceCollection services)
-        {
-            services.AddDbContext<MainDbContext>(options => options.UseInMemoryDatabase("Entities"));
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services)
         {
             services.AddApiVersioning(p =>
@@ -86,11 +67,11 @@ namespace JWTDemo.API.Configuration
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                { 
+                {
                     {
                         new OpenApiSecurityScheme{
                             Reference = new OpenApiReference{
-                                Id = "Bearer", 
+                                Id = "Bearer",
                                 Type = ReferenceType.SecurityScheme
                             }
                         },new List<string>()
@@ -111,7 +92,7 @@ namespace JWTDemo.API.Configuration
             return services;
         }
 
-        public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, AppSettings settings)
+        public static IServiceCollection AddCustomAuthentication(this IServiceCollection services)
         {
             services.AddAuthentication(options =>
             {
@@ -120,13 +101,17 @@ namespace JWTDemo.API.Configuration
             }).AddJwtBearer(x =>
             {
                 x.RequireHttpsMetadata = false;
-                x.SaveToken = true;
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(settings.JWT.Secret)),
+                    // -> next three lines: avoid to check de signature key (just the auth app, the issuer, has the key)
+                    ValidateIssuerSigningKey = false,
+                    RequireSignedTokens = false,
+                    SignatureValidator = (string token, TokenValidationParameters parameters) => new JwtSecurityToken(token),
+
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    ValidateActor = false,
+                    ValidateLifetime = true  // -> even avoiding the signature check, the token expiration has to be checked
                 };
             });
 
@@ -185,26 +170,6 @@ namespace JWTDemo.API.Configuration
             });
 
             return app;
-        }
-
-
-
-        private static List<Type> ListTypesOf<TBase>()
-        {
-            var baseType = typeof(TBase);
-
-            var result = Assembly
-                .GetAssembly(baseType)
-                .GetTypes()
-                .Where(type =>
-                    type.BaseType != null
-                    && (
-                        (type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == baseType)) // -> Generics, ex: CrudRepository<>
-                        || (baseType.IsAssignableFrom(type) && !type.IsAbstract) // -> Non generics, ex: Repository
-                    )
-                .ToList();
-
-            return result;
         }
     }
 }
